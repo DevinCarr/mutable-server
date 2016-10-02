@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -29,17 +28,24 @@ func NewTimeQueue() *TimeQueue {
 // provided url.
 func wait(tq *TimeQueue, i *Items, address string) {
 	time.Sleep(time.Duration(i.expire) * time.Minute)
-	resp, err := http.PostForm(MuteAddress,
-		url.Values{"consumerId": {i.consumerId},
-			"consumerSecret": {i.consumerSecret},
-			"userId":         {i.userId}})
+	req, _ := http.NewRequest("POST", UnmuteAddress, nil)
+
+	q := req.URL.Query()
+	q.Add("consumerId", i.consumerId)
+	q.Add("consumerSecret", i.consumerSecret)
+	q.Add("userId", i.userId)
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	defer resp.Body.Close()
 
-	fmt.Println(resp.Status)
+	fmt.Printf("Unmute: address: %s\nstatus: %s\n", req.URL.RawQuery, resp.Status)
 	tq.Done()
 }
 

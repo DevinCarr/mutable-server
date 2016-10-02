@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 )
 
@@ -18,16 +17,22 @@ type Response struct {
 }
 
 func callMute(i *Items) error {
-	resp, err := http.PostForm(MuteAddress,
-		url.Values{"consumerId": {i.consumerId},
-			"consumerSecret": {i.consumerSecret},
-			"userId":         {i.userId}})
+	req, _ := http.NewRequest("POST", MuteAddress, nil)
+
+	q := req.URL.Query()
+	q.Add("consumerId", i.consumerId)
+	q.Add("consumerSecret", i.consumerSecret)
+	q.Add("userId", i.userId)
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(resp.Status)
-
+	fmt.Printf("Mute: address: %s\nstatus: %s\n", req.URL.RawQuery, resp.Status)
 	resp.Body.Close()
 
 	return nil
@@ -89,7 +94,7 @@ func check(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/check", check)
-	http.HandleFunc("/new", push)
+	http.HandleFunc("/db/check", check)
+	http.HandleFunc("/db/new", push)
 	http.ListenAndServe(":8090", nil)
 }
