@@ -26,6 +26,8 @@ func callMute(i *Items) error {
 		return err
 	}
 
+	fmt.Println(resp.Status)
+
 	resp.Body.Close()
 
 	return nil

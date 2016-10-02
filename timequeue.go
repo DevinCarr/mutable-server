@@ -29,13 +29,16 @@ func NewTimeQueue() *TimeQueue {
 // provided url.
 func wait(tq *TimeQueue, i *Items, address string) {
 	time.Sleep(time.Duration(i.expire) * time.Minute)
-	resp, err := http.PostForm(address,
-		url.Values{"consumerId": {i.consumerId}})
-
+	resp, err := http.PostForm(MuteAddress,
+		url.Values{"consumerId": {i.consumerId},
+			"consumerSecret": {i.consumerSecret},
+			"userId":         {i.userId}})
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	defer resp.Body.Close()
+
 	fmt.Println(resp.Status)
 	tq.Done()
 }
